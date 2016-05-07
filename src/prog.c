@@ -35,10 +35,8 @@ static const uint32_t magic[] = {
 };
 
 
-
 // Uses __float128 operations:
 //   - multiply
-//   - pow (i.e. multiply)
 //   - subtract
 //   - cast to long_t
 long_t fib_g(int n) {
@@ -47,8 +45,14 @@ long_t fib_g(int n) {
   const __float128 *phi = (__float128 *) &magic[0];
   const __float128 *bottom = (__float128 *) &magic[4];
 
-  const __float128 top_left = powq(*phi, n);
-  const __float128 top_right = powq(one - *phi, n);
+  __float128 top_left = 1.0Q;
+  __float128 top_right = 1.0Q;
+
+  for (int kk = 0; kk < n; kk++) {
+    top_left = *phi * top_left;
+    top_right = (one - *phi) * top_right;
+  }
+
   const __float128 result = (top_left - top_right)*(*bottom);
 
   return (long_t) result;
