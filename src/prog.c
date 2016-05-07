@@ -4,8 +4,9 @@
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
+#include <quadmath.h>
 
-#define long_t int64_t
+#define long_t uint64_t
 #define long_t_max (INT64_MAX)
 
 long_t fib_iter(int n) {
@@ -29,16 +30,20 @@ long_t fib_iter(int n) {
 
 
 long_t fib_g(int n) {
-  // Constants
-  const double phi_d = (1.0 + sqrt(5.0))/2.0;
-  const double bottom_inv = 1.0/(2.0*phi_d - 1.0);
+  // Constants (128 bit)
+  const __float128 one_q = 1.0Q;
+  const __float128 two_q = 2.0Q;
+  const __float128 five_q = 5.0Q;
 
-  const double top_left = pow(phi_d, n);
-  const double top_right = pow(1.0 - phi_d, n);
+  const __float128 phi_q = (one_q + sqrtq(five_q))/two_q;
+  const __float128 bottom_inv = one_q/(two_q*phi_q - one_q);
 
-  const double result = (top_left - top_right)*bottom_inv;
+  const __float128 top_left = powq(phi_q, n);
+  const __float128 top_right = powq(one_q - phi_q, n);
 
-  return result;
+  const __float128 result = (top_left - top_right)*bottom_inv;
+
+  return (long_t) result;
 }
 
 
@@ -53,7 +58,7 @@ void test(void)
     // How far to overflow?
     const double frac = ((double) result_iter)/long_t_max;
 
-    printf("%d: %lld, %lld (%.10lf)\n", kk, result_iter, result_g, frac);
+    printf("%d: %llu, %llu (%.10lf)\n", kk, result_iter, result_g, frac);
 
     assert(result_iter == result_g);
   }
