@@ -29,19 +29,27 @@ long_t fib_iter(int n) {
 }
 
 
+static const uint32_t magic[] = {
+  0xc0605cee, 0x7c15f39c, 0x79b97f4a, 0x3fff9e37,  // (1 + sqrt(phi))/2
+  0x670094af, 0x93565294, 0x5c5bfedd, 0x3ffdc9f2   // 1/(2*phi - 1)
+};
+
+
+
+// Uses __float128 operations:
+//   - multiply
+//   - pow (i.e. multiply)
+//   - subtract
+//   - cast to long_t
 long_t fib_g(int n) {
-  // Constants (128 bit)
-  const __float128 one_q = 1.0Q;
-  const __float128 two_q = 2.0Q;
-  const __float128 five_q = 5.0Q;
+  // 128-bit constants
+  const __float128 one = 1.0Q;
+  const __float128 *phi = (__float128 *) &magic[0];
+  const __float128 *bottom = (__float128 *) &magic[4];
 
-  const __float128 phi_q = (one_q + sqrtq(five_q))/two_q;
-  const __float128 bottom_inv = one_q/(two_q*phi_q - one_q);
-
-  const __float128 top_left = powq(phi_q, n);
-  const __float128 top_right = powq(one_q - phi_q, n);
-
-  const __float128 result = (top_left - top_right)*bottom_inv;
+  const __float128 top_left = powq(*phi, n);
+  const __float128 top_right = powq(one - *phi, n);
+  const __float128 result = (top_left - top_right)*(*bottom);
 
   return (long_t) result;
 }
